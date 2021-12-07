@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using viewer.Hubs;
 using viewer.Models;
+using Microsoft.Extensions.Primitives;
+
 
 namespace viewer.Controllers
 {
@@ -96,7 +98,7 @@ namespace viewer.Controllers
         {
             var gridEvent =
                 JsonConvert.DeserializeObject<List<GridEvent<Dictionary<string, string>>>>(jsonContent)
-                    .First();
+                    .First();            
 
             await this._hubContext.Clients.All.SendAsync(
                 "gridupdate",
@@ -117,6 +119,7 @@ namespace viewer.Controllers
         private async Task<IActionResult> HandleGridEvents(string jsonContent)
         {
             var events = JArray.Parse(jsonContent);
+            var headerList = Request.Headers.Select(i => new { key = i.Key, value = i.Value }).ToList();
             foreach (var e in events)
             {
                 // Invoke a method on the clients for 
@@ -128,7 +131,8 @@ namespace viewer.Controllers
                     details.EventType,
                     details.Subject,
                     details.EventTime.ToLongTimeString(),
-                    e.ToString());
+                    e.ToString(),
+                    headerList);
             }
 
             return Ok();
@@ -138,6 +142,7 @@ namespace viewer.Controllers
         {
             var details = JsonConvert.DeserializeObject<CloudEvent<dynamic>>(jsonContent);
             var eventData = JObject.Parse(jsonContent);
+            var headerList = Request.Headers.Select(i => new { key = i.Key, value = i.Value }).ToList();
 
             await this._hubContext.Clients.All.SendAsync(
                 "gridupdate",
@@ -145,7 +150,8 @@ namespace viewer.Controllers
                 details.Type,
                 details.Subject,
                 details.Time,
-                eventData.ToString()
+                eventData.ToString(),
+                headerList
             );
 
             return Ok();

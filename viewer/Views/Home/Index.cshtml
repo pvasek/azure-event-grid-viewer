@@ -37,9 +37,18 @@
     </tr>
     <tr class="hiddenRow collapse" id="event-{{gridEventId}}">
         <td colspan="12">
+            <h4>POST body</h4>
             <div class="accordian-body">
                 <pre><code class="nohighlight">{{gridEvent}}</code></pre>
             </div>
+            <h4>POST headers</h4>
+            
+            <div class="accordian-body"> 
+                {{#each gridHeaders}}               
+                <div>{{key}}: {{value}}</div>
+                {{/each}}
+            </div>
+            
         </td>
     </tr>
 </script>
@@ -60,12 +69,13 @@
             $("#grid-events").hide();
         }
 
-        var addEvent = function (id, eventType, subject, eventTime, data) {
+        var addEvent = function (id, eventType, subject, eventTime, data, headers) {
             var context = {
                 gridEventType: eventType,
                 gridEventSubject: subject,
                 gridEventId: id,
-                gridEvent: data
+                gridEvent: data,
+                gridHeaders: headers
             };
             var source = document.getElementById('event-template').innerHTML;
             var template = Handlebars.compile(source);
@@ -88,8 +98,8 @@
                 .build();
 
             hubConnection.start().catch(err => console.error(err.toString()));
-            hubConnection.on('gridupdate', function (id, eventType, subject, eventTime, data) {
-                addEvent(id, eventType, subject, eventTime, data);
+            hubConnection.on('gridupdate', function (id, eventType, subject, eventTime, data, headers) {
+                addEvent(id, eventType, subject, eventTime, data, headers);
             });
         };
 
